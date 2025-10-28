@@ -103,6 +103,8 @@ services:
 
   kafdrop: #là một container giúp phục vụ web UI cho Kafka giúp trực quan rõ hon
      image: obsidiandynamics/kafdrop:3.27.0 #image
+     container_name: kafdrop #tên container bên ngoài
+     hostname: kafdrop #tên nội bộ container
      networks:
        - broker-kafka #chung network với 3 kafka và 1 zookeeper
      depends_on:
@@ -111,6 +113,126 @@ services:
        - 19000:9000 #ánh xạ tới cổng 190000 bên ngoài => localhost:19000 giúp mở kafka drop UI
      environment: #kết nối ctowis 3 kafka
        KAFKA_BROKERCONNECT: kafka1:29092,kafka2:29093,kafka3:29094
+
+  spark-master:
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+    container_name: spark-master
+    user: root 
+    ports:
+      - "9090:8080" # Spark Master Web UI
+      - "7077:7077" # Spark Master port
+    volumes:
+      - ./consumer:/app/consumer
+      - ./requirements.txt:/app/requirements.txt
+    environment:
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - PYTHONPATH=/app
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+    networks:
+      - broker-kafka
+  spark-worker-1:
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+    container_name: spark-worker-1
+    hostname: spark-worker-1
+    user: root
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_WEBUI_PORT=8081
+      - PYTHONPATH=/app
+    volumes:
+      - ./consumer:/app/consumer
+      - ./requirements.txt:/app/requirements.txt
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    networks:
+      - broker-kafka
+
+  spark-worker-2:
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+    container_name: spark-worker-2
+    hostname: spark-worker-2
+    user: root
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_WEBUI_PORT=8082 
+      - PYTHONPATH=/app
+    volumes:
+      - ./consumer:/app/consumer
+      - ./requirements.txt:/app/requirements.txt
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    networks:
+      - broker-kafka
+  spark-submit-streaming:
+    build:
+      context: .
+      dockerfile: spark.Dockerfile # Dùng chung image đã build
+    container_name: spark-submit-streaming
+    user: root
+    hostname: spark-submit-streaming
+    volumes:
+      # Mount cả thư mục consumer
+      - ./consumer:/app/consumer
+      # Dòng mount jar (nếu cần)
+      - ./packages/postgresql-42.5.4.jar:/opt/spark/jars/postgresql-4.5.4.jar
+    environment:
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+      INFLUXDB_MEASUREMENT: ${INFLUXDB_MEASUREMENT}
+      INFLUX_ORG: ${INFLUXDB_ORG}
+      INFLUX_TOKEN: ${INFLUXDB_TOKEN}
+      PYTHONPATH: /app
+    
+    # === SỬA LỖI Ở ĐÂY ===
+    # Toàn bộ lệnh command phải nằm trên MỘT DÒNG
+    command: sh -c "/opt/spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 --master spark://spark-master:7077 --py-files /app/consumer/InfluxDBWriter.py /app/consumer/consumer.py"
+    # === KẾT THÚC SỬA LỖI ===
+
+    depends_on:
+      - spark-master
+      - kafka1
+      - kafka2
+      - kafka3
+      - influxdb
+    networks:
+      - broker-kafka
+
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    hostname: influxdb
+    restart: always
+    ports:
+      - "8086:8086"
+    volumes:
+      - .\influxdb:/var/lib/influxdb2
+    environment:
+      INFLUXDB_USER: ${INFLUXDB_DB_USERNAME}
+      INFLUXDB_ADMIN_USER_PASSWORD: ${INFLUXDB_DB_ADMIN_PASSWORD}
+      INFLUXDB_USER_PASSWORD: ${INFLUXDB_DB_PASSWORD}
+      INFLUXDB_DB: ${INFLUXDB}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+      INFLUXDB_MEASUREMENT: ${INFLUXDB_MEASUREMENT}
+      INFLUXDB_HTTP_AUTH_ENABLED: "true"
+      INFLUXDB_ADMIN_USER_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+    networks:
+      - broker-kafka
+    
 networks:
   broker-kafka:
     driver: bridge

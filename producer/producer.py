@@ -6,7 +6,7 @@ path_to_utils = Path(__file__).parent.parent
 sys.path.insert(0, str(path_to_utils))
 
 from dotenv import load_dotenv
-from script.utils import load_environment_variables
+from consumer.utils import load_environment_variables
 from confluent_kafka import Producer
 from producer_utils import retrieve_weather_data
 

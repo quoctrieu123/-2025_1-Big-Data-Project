@@ -8,7 +8,7 @@ import openmeteo_requests
 import pandas as pd
 import requests_cache
 from retry_requests import retry
-from script.utils import load_environment_variables
+from consumer.utils import load_environment_variables
 
 # Load biến môi trường
 load_dotenv()
