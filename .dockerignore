@@ -1,0 +1,26 @@
+# Ignore Python cache and virtual env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.env/
+
+# Ignore cache and large folders
+.cache/
+logs/
+*.log
+
+# Ignore Git and editor files
+.git/
+.gitignore
+.idea/
+.vscode/
+
+# Ignore data files
+data/
+datasets/
+*.csv
+*.parquet
+*.zip
+*.tar.gz
