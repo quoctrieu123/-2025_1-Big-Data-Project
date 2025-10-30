@@ -1,5 +1,4 @@
 from dotenv import load_dotenv
-from datetime import datetime
 import socket
 import json
 import time as t
@@ -8,14 +7,12 @@ import openmeteo_requests
 import pandas as pd
 import requests_cache
 from retry_requests import retry
-from consumer.utils import load_environment_variables
-
+import os
 # Load biến môi trường
 load_dotenv()
-env_vars = load_environment_variables()
 
 # Cấu hình Kafka
-KAFKA_BROKERS = "localhost:9092,localhost:9093,localhost:9094"
+KAFKA_BROKERS = os.environ.get("KAFKA_EXTERNAL_SERVERS")
 conf = {
     'bootstrap.servers': KAFKA_BROKERS,
     'client.id': socket.gethostname(),

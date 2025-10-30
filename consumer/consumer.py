@@ -3,20 +3,18 @@ from pyspark.sql.types import *
 from pyspark.sql.functions import from_json, col
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 import os
-from utils import load_environment_variables
 from influxdb_client.client.write_api import SYNCHRONOUS
 from dotenv import load_dotenv
 load_dotenv()
-env_vars = load_environment_variables()
 
-KAFKA_BROKERS = "kafka1:19092,kafka2:19093,kafka3:19094"
-KAFKA_TOPIC = env_vars.get("WEATHER_KAFKA_TOPIC", "weather-data")
+KAFKA_BROKERS = os.environ.get("KAFKA_INTERNAL_SERVERS")
+KAFKA_TOPIC = os.environ.get("WEATHER_KAFKA_TOPIC")
 
-INFLUX_URL = "http://influxdb:8086"
-INFLUX_TOKEN = env_vars.get("INFLUXDB_TOKEN")
-INFLUX_ORG = env_vars.get("INFLUXDB_ORG", "primary")
-INFLUX_BUCKET = env_vars.get("INFLUXDB_BUCKET", "primary")
-INFLUX_MEASUREMENT = env_vars.get("INFLUXDB_MEASUREMENT", "weather-data")
+INFLUX_URL = os.environ.get("INFLUXDB_SERVER")
+INFLUX_TOKEN = os.environ.get("INFLUXDB_TOKEN")
+INFLUX_ORG = os.environ.get("INFLUXDB_ORG", "primary")
+INFLUX_BUCKET = os.environ.get("INFLUXDB_BUCKET", "primary")
+INFLUX_MEASUREMENT = os.environ.get("INFLUXDB_MEASUREMENT", "weather-data")
 
 spark = (
     SparkSession.builder
@@ -74,7 +72,6 @@ def write_to_influxdb(batch_df, batch_id):
             write_api = client.write_api(write_options=SYNCHRONOUS)
             points = []
             for row in records:
-                # Thêm kiểm tra giá trị null (nếu cần)
                 if row["datetime"] is None:
                     print(f"Batch {batch_id}: Skipping record with null datetime")
                     continue
