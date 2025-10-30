@@ -6,7 +6,6 @@ import os
 from utils import load_environment_variables
 from influxdb_client.client.write_api import SYNCHRONOUS
 from dotenv import load_dotenv
-# ======== 1. Cấu hình môi trường ========
 load_dotenv()
 env_vars = load_environment_variables()
 
@@ -26,7 +25,6 @@ spark = (
 )
 spark.sparkContext.setLogLevel("WARN")
 
-# ======== 3. Định nghĩa schema JSON ========
 schema = StructType([
     StructField("datetime", TimestampType(), True),
     StructField("temperature_2m", DoubleType(), True),
@@ -43,9 +41,8 @@ schema = StructType([
     StructField("cloud_cover_high", DoubleType(), True),
 ])
 
-# ======== 4. Đọc stream từ Kafka ========
-print(f"✅ Connecting to Kafka brokers: {KAFKA_BROKERS}")
-print(f"✅ Subscribing topic: {KAFKA_TOPIC}")
+print(f"Connecting to Kafka brokers: {KAFKA_BROKERS}")
+print(f"Subscribing topic: {KAFKA_TOPIC}")
 
 df_kafka = (
     spark.readStream
@@ -56,49 +53,63 @@ df_kafka = (
     .load()
 )
 
-# Kafka value là binary => cần chuyển sang string
 df_parsed = (
     df_kafka.selectExpr("CAST(value AS STRING) as json_str")
     .select(from_json(col("json_str"), schema).alias("data"))
     .select("data.*")
 )
 
-# ======== 5. Hàm ghi vào InfluxDB ========
 def write_to_influxdb(batch_df, batch_id):
+    print(f"--- Processing Batch ID: {batch_id} ---")
     records = batch_df.collect()
+
     if not records:
+        print(f"Batch {batch_id}: No records to write.")
         return
 
-    with InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG) as client:
-        write_api = client.write_api(write_options=SYNCHRONOUS)
-        points = []
-        for row in records:
-            point = (
-                Point(INFLUX_MEASUREMENT)
-                .time(row["datetime"], WritePrecision.S)
-                .field("temperature_2m", row["temperature_2m"])
-                .field("relative_humidity_2m", row["relative_humidity_2m"])
-                .field("rain", row["rain"])
-                .field("wind_speed_10m", row["wind_speed_10m"])
-                .field("wind_direction_10m", row["wind_direction_10m"])
-                .field("visibility", row["visibility"])
-                .field("precipitation_probability", row["precipitation_probability"])
-                .field("apparent_temperature", row["apparent_temperature"])
-                .field("cloud_cover", row["cloud_cover"])
-                .field("cloud_cover_low", row["cloud_cover_low"])
-                .field("cloud_cover_mid", row["cloud_cover_mid"])
-                .field("cloud_cover_high", row["cloud_cover_high"])
-            )
-            points.append(point)
+    print(f"Batch {batch_id}: Collected {len(records)} records. Preparing to write to InfluxDB...")
 
-        write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=points)
+    try:
+        with InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG) as client:
+            write_api = client.write_api(write_options=SYNCHRONOUS)
+            points = []
+            for row in records:
+                # Thêm kiểm tra giá trị null (nếu cần)
+                if row["datetime"] is None:
+                    print(f"Batch {batch_id}: Skipping record with null datetime")
+                    continue
+                    
+                point = (
+                    Point(INFLUX_MEASUREMENT)
+                    .time(row["datetime"], WritePrecision.S)
+                    .field("temperature_2m", row["temperature_2m"])
+                    .field("relative_humidity_2m", row["relative_humidity_2m"])
+                    .field("rain", row["rain"])
+                    .field("wind_speed_10m", row["wind_speed_10m"])
+                    .field("wind_direction_10m", row["wind_direction_10m"])
+                    .field("visibility", row["visibility"])
+                    .field("precipitation_probability", row["precipitation_probability"])
+                    .field("apparent_temperature", row["apparent_temperature"])
+                    .field("cloud_cover", row["cloud_cover"])
+                    .field("cloud_cover_low", row["cloud_cover_low"])
+                    .field("cloud_cover_mid", row["cloud_cover_mid"])
+                    .field("cloud_cover_high", row["cloud_cover_high"])
+                )
+                points.append(point)
+            
+            if points:
+                write_api.write(bucket=INFLUX_BUCKET, org=INFLUX_ORG, record=points)
+                print(f"Batch {batch_id}: Successfully wrote {len(points)} points to InfluxDB.")
 
-# ======== 6. Ghi stream vào InfluxDB ========
-query = (
+    except Exception as e:
+        print(f"ERROR in Batch {batch_id}: Failed to write to InfluxDB.")
+        print(f"Error details: {e}")
+
+query_console = (
     df_parsed.writeStream
     .foreachBatch(write_to_influxdb)
     .outputMode("update")
     .start()
 )
+query_console.awaitTermination()
 
-query.awaitTermination()
