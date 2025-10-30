@@ -1,9 +1,13 @@
 from confluent_kafka import Consumer, KafkaException
 from dotenv import load_dotenv
 import os
-load_dotenv()
+from pathlib import Path
+path_to_root = Path(__file__).parent.parent
+load_dotenv(dotenv_path=path_to_root / '.env')
 KAFKA_BROKERS = os.environ.get("KAFKA_EXTERNAL_SERVERS")
-KAFKA_TOPIC = os.environ.get("WEATHER_KAFKA_TOPIC", "weather-data")
+KAFKA_TOPIC = os.environ.get("WEATHER_KAFKA_TOPIC")
+print(f"KAFKA_BROKERS: {KAFKA_BROKERS}")
+print(f"KAFKA_TOPIC: {KAFKA_TOPIC}")
 conf = {
     'bootstrap.servers': KAFKA_BROKERS,
     'group.id': 'weather-data-consumer-group-1',
