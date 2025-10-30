@@ -104,8 +104,8 @@ services:
       - "7077:7077"
     volumes:
       - ./consumer:/app/consumer
-      - ./requirements.txt:/app/requirements.txt
-      - ./.env:/app/consumer/.env
+      - ./requirements.txt:/app/requirements.txtv
+      - ./.env:/app/.env
     environment:
       - SPARK_MASTER_PORT=7077
       - SPARK_MASTER_WEBUI_PORT=8080
@@ -131,7 +131,7 @@ services:
     volumes:
       - ./consumer:/app/consumer
       - ./requirements.txt:/app/requirements.txt
-      - ./.env:/app/consumer/.env
+      - ./.env:/app/.env
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     networks:
       - broker-kafka
@@ -154,7 +154,7 @@ services:
     volumes:
       - ./consumer:/app/consumer
       - ./requirements.txt:/app/requirements.txt
-      - ./.env:/app/consumer/.env
+      - ./.env:/app/.env
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     networks:
       - broker-kafka
@@ -167,13 +167,13 @@ services:
     user: root
     volumes:
       - ./consumer:/app/consumer
-      - ./.env:/app/consumer/.env
       - ./packages/postgresql-42.5.4.jar:/opt/spark/jars/postgresql-42.5.4.jar
+      - ./.env:/app/.env
     environment:
       INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
       INFLUXDB_MEASUREMENT: ${INFLUXDB_MEASUREMENT}
-      INFLUX_ORG: ${INFLUXDB_ORG}
-      INFLUX_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
       PYTHONPATH: /app
     command: sh -c "/opt/spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 --master spark://spark-master:7077 /app/consumer/consumer.py"
     depends_on:

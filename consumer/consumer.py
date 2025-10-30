@@ -5,7 +5,8 @@ from influxdb_client import InfluxDBClient, Point, WritePrecision
 import os
 from influxdb_client.client.write_api import SYNCHRONOUS
 from dotenv import load_dotenv
-load_dotenv()
+
+load_dotenv(dotenv_path= os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 KAFKA_BROKERS = os.environ.get("KAFKA_INTERNAL_SERVERS")
 KAFKA_TOPIC = os.environ.get("WEATHER_KAFKA_TOPIC")
@@ -15,7 +16,6 @@ INFLUX_TOKEN = os.environ.get("INFLUXDB_TOKEN")
 INFLUX_ORG = os.environ.get("INFLUXDB_ORG", "primary")
 INFLUX_BUCKET = os.environ.get("INFLUXDB_BUCKET", "primary")
 INFLUX_MEASUREMENT = os.environ.get("INFLUXDB_MEASUREMENT", "weather-data")
-
 spark = (
     SparkSession.builder
     .appName("KafkaToInfluxDB")
@@ -24,19 +24,20 @@ spark = (
 spark.sparkContext.setLogLevel("WARN")
 
 schema = StructType([
+    StructField("city_name", StringType(), True),
     StructField("datetime", TimestampType(), True),
-    StructField("temperature_2m", DoubleType(), True),
-    StructField("relative_humidity_2m", DoubleType(), True),
-    StructField("rain", DoubleType(), True),
-    StructField("wind_speed_10m", DoubleType(), True),
-    StructField("wind_direction_10m", DoubleType(), True),
-    StructField("visibility", DoubleType(), True),
-    StructField("precipitation_probability", DoubleType(), True),
-    StructField("apparent_temperature", DoubleType(), True),
+    StructField("temperature", DoubleType(), True),
+    StructField("humidity", DoubleType(), True),
+    StructField("wind_speed", DoubleType(), True),
     StructField("cloud_cover", DoubleType(), True),
-    StructField("cloud_cover_low", DoubleType(), True),
-    StructField("cloud_cover_mid", DoubleType(), True),
-    StructField("cloud_cover_high", DoubleType(), True),
+    StructField("visibility", DoubleType(), True),
+    StructField("air_pressure", DoubleType(), True),
+    StructField("air_pressure_sea_level", DoubleType(), True),
+    StructField("air_pressure_ground_level", DoubleType(), True),
+    StructField("apparent_temperature", DoubleType(), True),
+    StructField("wind_direction", DoubleType(), True),
+    StructField("rain", DoubleType(), True),
+    StructField("country", StringType(), True),
 ])
 
 print(f"Connecting to Kafka brokers: {KAFKA_BROKERS}")
@@ -68,7 +69,7 @@ def write_to_influxdb(batch_df, batch_id):
     print(f"Batch {batch_id}: Collected {len(records)} records. Preparing to write to InfluxDB...")
 
     try:
-        with InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG) as client:
+        with InfluxDBClient(url=INFLUX_URL, token= INFLUX_TOKEN, org=INFLUX_ORG) as client:
             write_api = client.write_api(write_options=SYNCHRONOUS)
             points = []
             for row in records:
@@ -79,18 +80,19 @@ def write_to_influxdb(batch_df, batch_id):
                 point = (
                     Point(INFLUX_MEASUREMENT)
                     .time(row["datetime"], WritePrecision.S)
-                    .field("temperature_2m", row["temperature_2m"])
-                    .field("relative_humidity_2m", row["relative_humidity_2m"])
-                    .field("rain", row["rain"])
-                    .field("wind_speed_10m", row["wind_speed_10m"])
-                    .field("wind_direction_10m", row["wind_direction_10m"])
-                    .field("visibility", row["visibility"])
-                    .field("precipitation_probability", row["precipitation_probability"])
-                    .field("apparent_temperature", row["apparent_temperature"])
+                    .tag("city_name", row["city_name"])
+                    .tag("country", row["country"])
+                    .field("temperature", row["temperature"])
+                    .field("humidity", row["humidity"])
+                    .field("wind_speed", row["wind_speed"])
                     .field("cloud_cover", row["cloud_cover"])
-                    .field("cloud_cover_low", row["cloud_cover_low"])
-                    .field("cloud_cover_mid", row["cloud_cover_mid"])
-                    .field("cloud_cover_high", row["cloud_cover_high"])
+                    .field("visibility", row["visibility"])
+                    .field("air_pressure", row["air_pressure"])
+                    .field("air_pressure_sea_level", row["air_pressure_sea_level"])
+                    .field("air_pressure_ground_level", row["air_pressure_ground_level"])
+                    .field("apparent_temperature", row["apparent_temperature"])
+                    .field("wind_direction", row["wind_direction"])
+                    .field("rain", row["rain"])
                 )
                 points.append(point)
             
@@ -101,7 +103,7 @@ def write_to_influxdb(batch_df, batch_id):
     except Exception as e:
         print(f"ERROR in Batch {batch_id}: Failed to write to InfluxDB.")
         print(f"Error details: {e}")
-
+df_parsed.printSchema()
 query_console = (
     df_parsed.writeStream
     .foreachBatch(write_to_influxdb)
