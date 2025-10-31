@@ -6,6 +6,7 @@ import os
 from influxdb_client.client.write_api import SYNCHRONOUS
 from dotenv import load_dotenv
 
+#os.path.dirname(__file__): lấy đường dẫn thư mục cha của file hiện tại
 load_dotenv(dotenv_path= os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 KAFKA_BROKERS = os.environ.get("KAFKA_INTERNAL_SERVERS")

@@ -175,7 +175,7 @@ services:
       INFLUXDB_ORG: ${INFLUXDB_ORG}
       INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
       PYTHONPATH: /app
-    command: sh -c "/opt/spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 --master spark://spark-master:7077 /app/consumer/consumer.py"
+    command: sh -c "echo 'Waiting for Kafka.....'; sleep 45; /opt/spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 --master spark://spark-master:7077 /app/consumer/consumer.py"
     depends_on:
       - spark-master
       - kafka1
@@ -210,6 +210,8 @@ services:
       - broker-kafka
   grafana:
     image: grafana/grafana-oss:8.4.3
+    container_name: grafana
+    hostname: grafana
     volumes:
       - grafana-storage:/var/lib/grafana
     depends_on:
