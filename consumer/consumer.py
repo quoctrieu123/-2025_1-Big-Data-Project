@@ -17,9 +17,10 @@ INFLUX_TOKEN = os.environ.get("INFLUXDB_TOKEN")
 INFLUX_ORG = os.environ.get("INFLUXDB_ORG", "primary")
 INFLUX_BUCKET = os.environ.get("INFLUXDB_BUCKET", "primary")
 INFLUX_MEASUREMENT = os.environ.get("INFLUXDB_MEASUREMENT", "weather-data")
+HDFS_PATH = os.environ.get("HDFS_OUTPUT_PATH")
 spark = (
     SparkSession.builder
-    .appName("KafkaToInfluxDB")
+    .appName("KafkaToInfluxDB,HDFS")
     .getOrCreate()
 )
 spark.sparkContext.setLogLevel("WARN")
@@ -59,17 +60,17 @@ df_parsed = (
     .select("data.*")
 )
 
-def write_to_influxdb(batch_df, batch_id):
+def write_to_sinks(batch_df, batch_id):
     print(f"--- Processing Batch ID: {batch_id} ---")
-    records = batch_df.collect()
-
-    if not records:
+    batch_df.cache()
+    if batch_df.isEmpty():
         print(f"Batch {batch_id}: No records to write.")
+        batch_df.unpersist()
         return
 
-    print(f"Batch {batch_id}: Collected {len(records)} records. Preparing to write to InfluxDB...")
-
     try:
+        records = batch_df.collect()
+        print(f"Batch {batch_id}: Collected {len(records)} records for InfluxDB.")
         with InfluxDBClient(url=INFLUX_URL, token= INFLUX_TOKEN, org=INFLUX_ORG) as client:
             write_api = client.write_api(write_options=SYNCHRONOUS)
             points = []
@@ -104,10 +105,18 @@ def write_to_influxdb(batch_df, batch_id):
     except Exception as e:
         print(f"ERROR in Batch {batch_id}: Failed to write to InfluxDB.")
         print(f"Error details: {e}")
+    try:
+        print(f"Batch {batch_id}: Writing {batch_df.count()} records to HDFS at {HDFS_PATH}...")
+        batch_df.write.format("parquet").mode("append").save(HDFS_PATH)
+        print(f"Batch {batch_id}: Successfully wrote to HDFS.")
+    except Exception as e:
+        print(f"ERROR in Batch {batch_id}: Failed to write to HDFS.")
+        print(f"Error details: {e}")  
+    batch_df.unpersist()
 df_parsed.printSchema()
 query_console = (
     df_parsed.writeStream
-    .foreachBatch(write_to_influxdb)
+    .foreachBatch(write_to_sinks)
     .outputMode("update")
     .start()
 )

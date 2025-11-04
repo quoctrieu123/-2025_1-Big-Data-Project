@@ -104,7 +104,7 @@ services:
       - "7077:7077"
     volumes:
       - ./consumer:/app/consumer
-      - ./requirements.txt:/app/requirements.txtv
+      - ./requirements.txt:/app/requirements.txt
       - ./.env:/app/.env
     environment:
       - SPARK_MASTER_PORT=7077
@@ -220,9 +220,79 @@ services:
       - "3000:3000"
     networks:
       - broker-kafka
+  
+  hdfs-namenode:
+    image: apache/hadoop:3
+    hostname: hdfs-namenode
+    container_name: hdfs-namenode
+    command:
+      - hdfs
+      - namenode
+    volumes:
+      - hadoop:/home/ 
+    ports:
+      - 9870:9870
+    env_file:
+      - ./config-hadoop
+    environment:
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+    depends_on:
+      - yarn-resourcemanager
+      - yarn-nodemanager
+    networks:
+      - broker-kafka
+    restart: on-failure
+  
+  hdfs-datanode:
+    image: apache/hadoop:3
+    hostname: hdfs-datanode
+    container_name: hdfs-datanode
+    env_file:
+      - ./config-hadoop
+    command:
+      - hdfs
+      - datanode
+    volumes:
+      - hadoop:/home/
+    networks:
+      - broker-kafka
+    depends_on:
+      - hdfs-namenode
+  
+  yarn-resourcemanager:
+    image: apache/hadoop:3
+    hostname: yarn-resourcemanager
+    container_name: yarn-resourcemanager
+    command:
+      - yarn
+      - resourcemanager
+    ports: 
+      - 8080:8080
+    env_file:
+      - ./config-hadoop
+    volumes:
+      - ./test.sh:/opt/test.sh
+    networks:
+      - broker-kafka
+    restart: on-failure
+
+  yarn-nodemanager:
+    image: apache/hadoop:3
+    hostname: yarn-nodemanager
+    container_name: yarn-nodemanager
+    command:
+      - yarn
+      - nodemanager
+    env_file:
+      - ./config-hadoop
+    volumes:
+      - hadoop:/home/
+    restart: on-failure
+    
 
 volumes:
   grafana-storage:
+  hadoop:
 networks:
   broker-kafka:
     driver: bridge
