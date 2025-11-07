@@ -175,7 +175,7 @@ services:
       INFLUXDB_ORG: ${INFLUXDB_ORG}
       INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
       PYTHONPATH: /app
-    command: sh -c "echo 'Waiting for Kafka.....'; sleep 45; /opt/spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 --master spark://spark-master:7077 /app/consumer/consumer.py"
+    command: sh -c "echo 'Waiting for Kafka.....'; sleep 15; /opt/spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 --master spark://spark-master:7077 --conf spark.cores.max=1  /app/consumer/consumer.py"
     depends_on:
       - spark-master
       - kafka1
@@ -185,6 +185,31 @@ services:
     networks:
       - broker-kafka
 
+  spark-submit-batch:
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+    container_name: spark-submit-batch
+    hostname: spark-submit-batch
+    user: root
+    depends_on:
+      - spark-master
+      - hdfs-namenode
+      - mongodb
+    volumes:
+      - ./consumer:/app/consumer
+      - ./requirements.txt:/app/requirements.txt
+      - ./.env:/app/.env
+    environment:
+      PYTHONPATH: /app
+    command: >
+      sh -c 'echo "Waiting for core services...."; 
+      sleep 30; 
+      /opt/spark/bin/spark-submit --master spark://spark-master:7077 
+      --packages org.mongodb.spark:mongo-spark-connector_2.12:10.3.0 
+      /app/consumer/write-to-mongodb.py'
+    networks:
+      - broker-kafka
 
   influxdb:
     image: influxdb:2.7
@@ -220,6 +245,18 @@ services:
       - "3000:3000"
     networks:
       - broker-kafka
+  
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    hostname: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - broker-kafka
+
   
   hdfs-namenode:
     image: apache/hadoop:3
@@ -293,6 +330,7 @@ services:
 volumes:
   grafana-storage:
   hadoop:
+  mongodb_data:
 networks:
   broker-kafka:
     driver: bridge
