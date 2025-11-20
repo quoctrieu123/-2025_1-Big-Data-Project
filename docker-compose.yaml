@@ -1,77 +1,56 @@
 services:
-  zoo1: #tên service. Đây là zookeeper giúp quản lý kafka
-    image: confluentinc/cp-zookeeper:7.3.2 #image với tag 7.3.2
-    hostname: zoo1 #tên nội bộ của container
-    container_name: zoo1 #tên bên ngoài của container
+  zoo1: 
+    image: confluentinc/cp-zookeeper:7.3.2 
+    hostname: zoo1 
+    container_name: zoo1 
     ports:
-      - "2181:2181" #mapping port bên ngoài là 2181 với port nội bộ là 2181
-    environment: #các biến mỗi trường cần để cấu hình image cp-zookeeper
-      ZOOKEEPER_CLIENT_PORT: 2181 #cổng client dùng để kết nối đến zookeeper
-      ZOOKEEPER_SERVER_ID: 1 #mỗi zookeeper server cần 1 id => đặt là 1
-      ZOOKEEPER_SERVERS: zoo1:2888:3888 #danh sách các server trong zookeeper cluster: port giao tiếp giữa các zookeepr: port bầu chọn leader
+      - "2181:2181" 
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181 
+      ZOOKEEPER_SERVER_ID: 1 
+      ZOOKEEPER_SERVERS: zoo1:2888:3888 
     networks:
-      - broker-kafka #gắn container vào network (các container cùng network có thể giao tiếp nội bộ mà không cần mở port ra ngoài)
+      - broker-kafka 
 
-  kafka1: #tên service
-    image: confluentinc/cp-kafka:7.3.2 #image kafka
-    hostname: kafka1 #tên nội bộ của container
-    container_name: kafka1 #tên bên ngoài của container
+  kafka1: 
+    image: confluentinc/cp-kafka:7.3.2 
+    hostname: kafka1 
+    container_name: kafka1 
     ports:
-      - "9092:9092" #mở 2 cổng cho kafka
+      - "9092:9092" 
       - "29092:29092"
     environment:
-      #giúp thông báo đến listeners cách thức kết nối kafka
-      #Internal: cách kết nối đến container này nếu cùng network
-      #External: cách kết nối đến container này nếu nằm cùng network
-      #Docker: dành cho ứng dụng chạy trong docker desktop
       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka1:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
-      #phương thức bảo mật của từng cách kết nối
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
-      #các kafka broker sẽ khai báo với nhau qua internal
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      #kết nối zookeeper thông qua zoo1:2181 trong network
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      #id của kafka broker
       KAFKA_BROKER_ID: 1
-      #cấu hình mức độ log của kafka
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
-      #bật bảo mật nhưng không khóa
       KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
-      #số parition mặc định
       KAFKA_NUM_PARTITIONS: 4
-    #cần khởi động sau zoo1
     depends_on:
       - zoo1
-    #network của container
     networks:
       - broker-kafka
 
-  kafka2: #kafka giúp nhận dữ liệu từ bên ngoài vào
-    image: confluentinc/cp-kafka:7.3.2 #image
-    hostname: kafka2 #tên nội bộ
-    container_name: kafka2 #tên bên ngoài
+  kafka2: 
+    image: confluentinc/cp-kafka:7.3.2 
+    hostname: kafka2 
+    container_name: kafka2 
     ports:
-      - "9093:9093" #nối với 2 port
+      - "9093:9093" 
       - "29093:29093"
     environment:
-      #cách thức kết nối đến container này
       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka2:19093,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093,DOCKER://host.docker.internal:29093
-      #phương thức bảo mật
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
-      #kết nối giữa các broker thông qua internal
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      #nối với zookeeper zoo1
       KAFKA_ZOOKEEPER_CONNECT: "zoo1:2181"
-      #id của broker này
       KAFKA_BROKER_ID: 2
-      #set loại log trả về
       KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
-      #đặt bảo mật
       KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
       KAFKA_NUM_PARTITIONS: 4
-    #cần zoo1 khởi tọa trước
     depends_on:
       - zoo1
     networks:
@@ -79,7 +58,6 @@ services:
 
   
   kafka3:
-    #Khởi tạo tương tự thêm 1 broker nữa ID là 3
     image: confluentinc/cp-kafka:7.3.2
     hostname: kafka3
     container_name: kafka3
@@ -101,16 +79,258 @@ services:
     networks:
       - broker-kafka
 
-  kafdrop: #là một container giúp phục vụ web UI cho Kafka giúp trực quan rõ hon
-     image: obsidiandynamics/kafdrop:3.27.0 #image
-     networks:
-       - broker-kafka #chung network với 3 kafka và 1 zookeeper
-     depends_on:
-       - zoo1 #phụ thuộc vào zookeeper
-     ports:
-       - 19000:9000 #ánh xạ tới cổng 190000 bên ngoài => localhost:19000 giúp mở kafka drop UI
-     environment: #kết nối ctowis 3 kafka
-       KAFKA_BROKERCONNECT: kafka1:29092,kafka2:29093,kafka3:29094
+  kafdrop: 
+    image: obsidiandynamics/kafdrop:3.27.0 
+    container_name: kafdrop 
+    hostname: kafdrop
+    depends_on:
+      - zoo1 
+    ports:
+      - 19000:9000
+    environment:
+      KAFKA_BROKERCONNECT: kafka1:29092,kafka2:29093,kafka3:29094
+    networks:
+      - broker-kafka 
+    
+
+  spark-master:
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+    container_name: spark-master
+    user: root 
+    ports:
+      - "9090:8080" 
+      - "7077:7077"
+    volumes:
+      - ./consumer:/app/consumer
+      - ./requirements.txt:/app/requirements.txt
+      - ./.env:/app/.env
+    environment:
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - PYTHONPATH=/app
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+    networks:
+      - broker-kafka
+  spark-worker-1:
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+    container_name: spark-worker-1
+    hostname: spark-worker-1
+    user: root
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_WEBUI_PORT=8081
+      - PYTHONPATH=/app
+    volumes:
+      - ./consumer:/app/consumer
+      - ./requirements.txt:/app/requirements.txt
+      - ./.env:/app/.env
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    networks:
+      - broker-kafka
+
+  spark-worker-2:
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+    container_name: spark-worker-2
+    hostname: spark-worker-2
+    user: root
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_WEBUI_PORT=8082 
+      - PYTHONPATH=/app
+    volumes:
+      - ./consumer:/app/consumer
+      - ./requirements.txt:/app/requirements.txt
+      - ./.env:/app/.env
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    networks:
+      - broker-kafka
+  spark-submit-streaming:
+    build:
+      context: .
+      dockerfile: spark.Dockerfile 
+    container_name: spark-submit-streaming
+    hostname: spark-submit-streaming
+    user: root
+    volumes:
+      - ./consumer:/app/consumer
+      - ./packages/postgresql-42.5.4.jar:/opt/spark/jars/postgresql-42.5.4.jar
+      - ./.env:/app/.env
+    environment:
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+      INFLUXDB_MEASUREMENT: ${INFLUXDB_MEASUREMENT}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+      PYTHONPATH: /app
+    command: sh -c "echo 'Waiting for Kafka.....'; sleep 15; /opt/spark/bin/spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1 --master spark://spark-master:7077 --conf spark.cores.max=1  /app/consumer/consumer.py"
+    depends_on:
+      - spark-master
+      - kafka1
+      - kafka2
+      - kafka3
+      - influxdb
+    networks:
+      - broker-kafka
+
+  spark-submit-batch:
+    build:
+      context: .
+      dockerfile: spark.Dockerfile
+    container_name: spark-submit-batch
+    hostname: spark-submit-batch
+    user: root
+    depends_on:
+      - spark-master
+      - hdfs-namenode
+      - mongodb
+    volumes:
+      - ./consumer:/app/consumer
+      - ./requirements.txt:/app/requirements.txt
+      - ./.env:/app/.env
+    environment:
+      PYTHONPATH: /app
+    command: >
+      sh -c 'echo "Waiting for core services...."; 
+      sleep 30; 
+      /opt/spark/bin/spark-submit --master spark://spark-master:7077 
+      --packages org.mongodb.spark:mongo-spark-connector_2.12:10.3.0 
+      /app/consumer/write-to-mongodb.py'
+    networks:
+      - broker-kafka
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    hostname: influxdb
+    restart: always
+    ports:
+      - "8086:8086"
+    volumes:
+      - .\influxdb:/var/lib/influxdb2
+    environment:
+      INFLUXDB_USER: ${INFLUXDB_DB_USERNAME}
+      INFLUXDB_ADMIN_USER_PASSWORD: ${INFLUXDB_DB_ADMIN_PASSWORD}
+      INFLUXDB_USER_PASSWORD: ${INFLUXDB_DB_PASSWORD}
+      INFLUXDB_DB: ${INFLUXDB}
+      INFLUXDB_ORG: ${INFLUXDB_ORG}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET}
+      INFLUXDB_MEASUREMENT: ${INFLUXDB_MEASUREMENT}
+      INFLUXDB_HTTP_AUTH_ENABLED: "true"
+      INFLUXDB_ADMIN_USER_TOKEN: ${INFLUXDB_TOKEN}
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN}
+    networks:
+      - broker-kafka
+  grafana:
+    image: grafana/grafana-oss:8.4.3
+    container_name: grafana
+    hostname: grafana
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - influxdb
+    ports:
+      - "3000:3000"
+    networks:
+      - broker-kafka
+  
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    hostname: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - broker-kafka
+
+  
+  hdfs-namenode:
+    image: apache/hadoop:3
+    hostname: hdfs-namenode
+    container_name: hdfs-namenode
+    command:
+      - hdfs
+      - namenode
+    volumes:
+      - hadoop:/home/ 
+    ports:
+      - 9870:9870
+    env_file:
+      - ./config-hadoop
+    environment:
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+    depends_on:
+      - yarn-resourcemanager
+      - yarn-nodemanager
+    networks:
+      - broker-kafka
+    restart: on-failure
+  
+  hdfs-datanode:
+    image: apache/hadoop:3
+    hostname: hdfs-datanode
+    container_name: hdfs-datanode
+    env_file:
+      - ./config-hadoop
+    command:
+      - hdfs
+      - datanode
+    volumes:
+      - hadoop:/home/
+    networks:
+      - broker-kafka
+    depends_on:
+      - hdfs-namenode
+  
+  yarn-resourcemanager:
+    image: apache/hadoop:3
+    hostname: yarn-resourcemanager
+    container_name: yarn-resourcemanager
+    command:
+      - yarn
+      - resourcemanager
+    ports: 
+      - 8080:8080
+    env_file:
+      - ./config-hadoop
+    volumes:
+      - ./test.sh:/opt/test.sh
+    networks:
+      - broker-kafka
+    restart: on-failure
+
+  yarn-nodemanager:
+    image: apache/hadoop:3
+    hostname: yarn-nodemanager
+    container_name: yarn-nodemanager
+    command:
+      - yarn
+      - nodemanager
+    env_file:
+      - ./config-hadoop
+    volumes:
+      - hadoop:/home/
+    restart: on-failure
+    
+
+volumes:
+  grafana-storage:
+  hadoop:
+  mongodb_data:
 networks:
   broker-kafka:
     driver: bridge

@@ -1,5 +1,14 @@
+influxdb_client
 openmeteo-requests
 requests-cache 
 retry-requests 
 numpy 
 pandas
+confluent-kafka
+python-dotenv
+findspark
+psycopg2-binary
+influxdb_client
+PyHDFS
+py4j
+hdfs

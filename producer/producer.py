@@ -1,20 +1,18 @@
 import sys, socket
 from pathlib import Path
 import threading
-
+import os
 # Đảm bảo có thể import từ thư mục cha
 path_to_utils = Path(__file__).parent.parent
 sys.path.insert(0, str(path_to_utils))
 
 from dotenv import load_dotenv
-from script.utils import load_environment_variables
 from confluent_kafka import Producer
-from producer.producer_utils_v2 import retrieve_weather_data
+from producer_utils_v2 import retrieve_weather_data
 
 load_dotenv()
-env_vars = load_environment_variables()
 
-KAFKA_BROKERS = "localhost:9092,localhost:9093,localhost:9094"
+KAFKA_BROKERS = os.environ.get("KAFKA_EXTERNAL_SERVERS")
 conf = {
     'bootstrap.servers': KAFKA_BROKERS,
     'client.id': socket.gethostname(),
@@ -23,7 +21,7 @@ conf = {
 producer = Producer(conf)
 
 if __name__ == "__main__":
-    kafka_topic = env_vars.get("WEATHER_KAFKA_TOPIC", "weather-data")
+    kafka_topic = os.environ.get("WEATHER_KAFKA_TOPIC", "weather-data")
     cities = [
         {"name": "Hanoi", "lat": 21.033333, "lon": 105.849998},
         {"name": "Bangkok", "lat": 13.44, "lon": 100.30},

@@ -5,10 +5,12 @@ import json
 import time as t
 from confluent_kafka import Producer
 import requests  
-from script.utils import load_environment_variables
-
+import os
+from pathlib import Path
+import sys
+path = Path(__file__).parent.parent
+sys.path.insert(0, str(path))
 load_dotenv()
-env_vars = load_environment_variables()
 
 # Lấy API key từ biến môi trường
 # OPENWEATHER_API_KEY = env_vars.get('OPENWEATHER_API_KEY')
@@ -17,7 +19,7 @@ env_vars = load_environment_variables()
 
 OPENWEATHER_API_KEY = ""
 
-KAFKA_BROKERS = "localhost:9092,localhost:9093,localhost:9094"
+KAFKA_BROKERS = os.environ.get("KAFKA_EXTERNAL_SERVERS")
 conf = {
     'bootstrap.servers': KAFKA_BROKERS,
     'client.id': socket.gethostname(),

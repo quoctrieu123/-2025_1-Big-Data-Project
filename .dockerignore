@@ -1,3 +1,27 @@
+<<<<<<< HEAD
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.tmp
+*.swp
+*.bak
+*.git
+*.gitignore
+*.idea
+*.vscode
+.env
+docker-compose.yaml
+Dockerfile
+spark.Dockerfile
+*.tar
+*.zip
+*.gz
+*/__pycache__/
+*/node_modules/
+=======
 # Ignore Python cache and virtual env
 __pycache__/
 *.pyc
@@ -24,3 +48,4 @@ datasets/
 *.parquet
 *.zip
 *.tar.gz
+>>>>>>> main
