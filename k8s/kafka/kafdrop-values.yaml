@@ -1,0 +1,35 @@
+# Values for deploying Kafdrop UI on Docker Desktop Kubernetes
+# Chart: https://github.com/obsidiandynamics/kafdrop/tree/master/helm
+# Usage:
+#   helm repo add kafdrop https://obsidiandynamics.github.io/kafdrop
+#   helm upgrade --install kafdrop kafdrop/kafdrop -n bigdata -f k8s/kafka/kafdrop-values.yaml
+
+replicaCount: 1
+
+image:
+  repository: obsidiandynamics/kafdrop
+  tag: 4.0.1
+
+kafka:
+  brokerConnect: "kafka-broker-0.kafka-broker-headless.bigdata.svc.cluster.local:9092"
+
+jvm:
+  opts: "-Xms64M -Xmx256M"
+
+server:
+  port: 9000
+  servlet:
+    contextPath: /
+
+service:
+  type: NodePort
+  nodePort: 30900
+  port: 9000
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

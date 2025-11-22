@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-streaming-consumer
+  namespace: bigdata
+  labels:
+    app: spark-streaming-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-streaming-consumer
+  template:
+    metadata:
+      labels:
+        app: spark-streaming-consumer
+    spec:
+      containers:
+        - name: spark-streaming
+          image: spark-consumer:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: spark-consumer-config
+            - secretRef:
+                name: spark-consumer-secrets
+          command: ["/bin/sh","-c"]
+          args:
+            - >-
+              /opt/spark/bin/spark-submit
+              --master local[*]
+              --name kafka-weather-stream
+              --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1
+              /app/consumer/consumer.py
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+      restartPolicy: Always

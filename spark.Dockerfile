@@ -18,5 +18,13 @@ RUN apt-get update && \
 RUN pip install --upgrade pip setuptools wheel
 
 # Bây giờ, cài đặt requirements.txt như bình thường
-COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+WORKDIR /app
+
+COPY requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy streaming/batch source code so the image is self-contained for Kubernetes
+COPY consumer /app/consumer
+COPY batch /app/batch
+
+ENV PYTHONPATH=/app

@@ -1,0 +1,71 @@
+global:
+  imageRegistry: public.ecr.aws
+  security:
+    allowInsecureImages: true
+
+kraft:
+  enabled: true
+
+zookeeper:
+  enabled: false
+
+controller:
+  replicaCount: 1        # controller-only pods
+  automountServiceAccountToken: true
+  persistence:
+    enabled: true
+    size: 2Gi
+
+broker:
+  replicaCount: 1
+  automountServiceAccountToken: true
+  persistence:
+    enabled: true
+    size: 5Gi
+
+defaultInitContainers:
+  autoDiscovery:
+    enabled: true
+    image:
+      registry: public.ecr.aws
+      repository: bitnami/kubectl
+      tag: 1.33.4-debian-12-r0
+
+rbac:
+  create: true
+
+externalAccess:
+  enabled: true
+  autoDiscovery:
+    enabled: true
+  controller:
+    forceExpose: false
+    service:
+      type: NodePort
+      useHostIPs: false
+      domain: localhost
+      nodePorts:
+        - 31092
+        - 31093
+        - 31094
+  broker:
+    replicaCount: 3
+    service:
+      type: NodePort
+      useHostIPs: false
+      domain: localhost
+      nodePorts:
+        - 30092
+        - 30093
+        - 30094
+
+listeners:
+  client:
+    protocol: PLAINTEXT
+  controller:
+    protocol: PLAINTEXT
+  interbroker:
+    protocol: PLAINTEXT
+  external:
+    protocol: PLAINTEXT
+  securityProtocolMap: CONTROLLER:PLAINTEXT,CLIENT:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
