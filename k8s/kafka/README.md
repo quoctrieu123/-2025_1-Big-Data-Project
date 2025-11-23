@@ -30,18 +30,28 @@ kubectl -n bigdata get svc kafka,kafka-broker-headless
 ```
 Wait until the broker reports `Running`.
 
-## 4. Update `.env` for producer
-Set `KAFKA_EXTERNAL_SERVERS="127.0.0.1:30092"`. The Python producer will read this list and connect to the NodePort.
+## 4. Enable External Access (Minikube/Docker Desktop)
+For Minikube or Docker Desktop Kubernetes, NodePort services are not automatically accessible on localhost. You need to set up port forwarding:
 
-## 5. Run the producer
+```bash
+# Port-forward the Kafka broker service to localhost
+kubectl -n bigdata port-forward svc/kafka-broker-0-external 30092:9094
+```
+
+Keep this terminal running while using the producer. Alternatively, run it in the background or use a separate terminal.
+
+## 5. Update `.env` for producer
+Set `KAFKA_EXTERNAL_SERVERS="127.0.0.1:30092"`. The Python producer will read this list and connect through the port-forward.
+
+## 6. Run the producer
 Use the existing virtualenv or pip env:
 ```bash
 pip install -r requirements.txt  # if not already installed
 python producer/producer.py
 ```
-Expected log: each city thread starts and records are published. Verify topic via Kafdrop or kafka-console-consumer (see section 6).
+Expected log: each city thread starts and records are published. Verify topic via Kafdrop or kafka-console-consumer (see section 7).
 
-## 6. Kafdrop Deployment
+## 7. Kafdrop Deployment
 Since the official Helm repository is no longer hosted, we install from the source:
 
 ```bash
@@ -54,28 +64,31 @@ helm upgrade --install kafdrop packages/kafdrop/chart \
   -f k8s/kafka/kafdrop-values.yaml
 ```
 
-Kafdrop is exposed over NodePort 30900. Access it from the host:
-```bash
-kubectl -n bigdata get svc kafdrop
-# open http://localhost:30900 in your browser
-```
-If you prefer port-forwarding instead of NodePort:
-```bash
-kubectl -n bigdata port-forward svc/kafdrop 9000:9000
-```
-Then browse http://localhost:9000 and use broker string `kafka-broker-0.kafka-broker-headless.bigdata.svc.cluster.local:9092` or simply `localhost:30092` for quick checks.
+### Access Kafdrop UI (Minikube/Docker Desktop)
+Like Kafka, Kafdrop's NodePort requires port-forwarding on Minikube/Docker Desktop:
 
-## 7. Scaling & cleanup
+```bash
+# Port-forward Kafdrop service to localhost
+kubectl -n bigdata port-forward svc/kafdrop 30900:9000
+```
+
+Keep this terminal running, then open your browser to:
+**http://localhost:30900**
+
+You should see the Kafdrop UI with the `weather-data` topic and messages from the producer. The broker connect string in Kafdrop is configured as `kafka-broker-0.kafka-broker-headless.bigdata.svc.cluster.local:9092` (internal cluster DNS).
+
+## 8. Scaling & cleanup
 - Scale brokers: `kubectl -n bigdata scale statefulset kafka-broker --replicas=2` (update nodePorts accordingly).
 - Uninstall: `helm -n bigdata uninstall kafka` (PVCs remain; delete manually if needed).
 
-## 8. Troubleshooting
+## 9. Troubleshooting
 | Symptom | Fix |
 |---------|-----|
-| Producer stuck on `Connection refused` | Ensure NodePorts 30092+ are open and pods Running. Check `kubectl -n bigdata get svc kafka-external`. |
+| Producer stuck on `Connection refused` | Ensure port-forward is running: `kubectl -n bigdata port-forward svc/kafka-broker-0-external 30092:9094`. Check pods are Running with `kubectl -n bigdata get pods`. |
+| Cannot access Kafdrop on localhost:30900 | Ensure port-forward is running: `kubectl -n bigdata port-forward svc/kafdrop 30900:9000`. Keep the terminal open. |
 | Broker CrashLoop due to storage | Docker Desktop sometimes needs more resources; increase disk size or disable persistence in values file. |
 | Topic not created | `auto.create.topics.enable` is true; otherwise run `kubectl -n bigdata exec -it kafka-0 -- kafka-topics.sh --create ...`. |
-| Kafdrop cannot reach brokers | Confirm `KAFKA_BROKERCONNECT` in `kafdrop-values.yaml` matches the headless service hostnames. |
+| Kafdrop cannot reach brokers | Confirm `KAFKA_BROKERCONNECT` in `kafdrop-values.yaml` matches the headless service hostnames. If Kafdrop shows "Unable to retrieve brokers", check that Kafka pods are Running. |
 | Pods stuck in `Init:ImagePullBackOff` | Ensure you’re on chart ≥32 with `global.imageRegistry=public.ecr.aws` (Docker Hub tags now require a Bitnami subscription). |
 | Helm errors about “unrecognized containers” | Keep `global.security.allowInsecureImages=true` when overriding the registry to Bitnami’s ECR mirror. |
 

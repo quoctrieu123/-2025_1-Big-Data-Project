@@ -6,7 +6,7 @@ metadata:
   labels:
     app: spark-streaming-consumer
 data:
-  KAFKA_INTERNAL_SERVERS: "kafka-0.kafka-headless.bigdata.svc.cluster.local:9092,kafka-1.kafka-headless.bigdata.svc.cluster.local:9092,kafka-2.kafka-headless.bigdata.svc.cluster.local:9092"
+  KAFKA_INTERNAL_SERVERS: "kafka-broker-0.kafka-broker-headless.bigdata.svc.cluster.local:9092"
   WEATHER_KAFKA_TOPIC: "weather-data"
   INFLUXDB_SERVER: "http://influxdb.bigdata.svc.cluster.local:8086"
   INFLUXDB_BUCKET: "primary"

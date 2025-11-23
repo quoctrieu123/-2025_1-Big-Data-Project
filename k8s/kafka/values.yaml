@@ -37,27 +37,18 @@ rbac:
 externalAccess:
   enabled: true
   autoDiscovery:
-    enabled: true
+    enabled: false
   controller:
     forceExpose: false
     service:
       type: NodePort
-      useHostIPs: false
       domain: localhost
-      nodePorts:
-        - 31092
-        - 31093
-        - 31094
   broker:
-    replicaCount: 3
     service:
       type: NodePort
-      useHostIPs: false
       domain: localhost
       nodePorts:
         - 30092
-        - 30093
-        - 30094
 
 listeners:
   client:
