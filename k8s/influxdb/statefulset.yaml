@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: influxdb
+  namespace: bigdata
+  labels:
+    app: influxdb
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8086
+      targetPort: 8086
+  selector:
+    app: influxdb
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: influxdb
+  namespace: bigdata
+  labels:
+    app: influxdb
+spec:
+  serviceName: influxdb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: influxdb
+  template:
+    metadata:
+      labels:
+        app: influxdb
+    spec:
+      containers:
+        - name: influxdb
+          image: influxdb:2.7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8086
+          envFrom:
+            - secretRef:
+                name: influxdb-secrets
+          env:
+            - name: DOCKER_INFLUXDB_INIT_MODE
+              value: setup
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/influxdb2
+      terminationGracePeriodSeconds: 30
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi

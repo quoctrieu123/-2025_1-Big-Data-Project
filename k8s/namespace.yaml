@@ -1,0 +1,11 @@
+#cấu hình để tạo namespace bigdata
+apiVersion: v1
+kind: Namespace #định nghĩa loại component
+metadata:
+  name: bigdata #tên namespace
+  labels:
+    project: big-data-2025-1 #thêm nhãn cho namespace
+  
+#xem thông tin chi tiết về namespace: kubectl describe namespace bigdata
+  
+  

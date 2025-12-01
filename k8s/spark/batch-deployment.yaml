@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-batch
+  namespace: bigdata
+  labels:
+    app: spark-batch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-batch
+  template:
+    metadata:
+      labels:
+        app: spark-batch
+    spec:
+      containers:
+        - name: spark-batch
+          image: spark-consumer:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for HDFS and MongoDB..."
+              sleep 60
+              echo "Starting batch processing loop..."
+              while true; do
+                echo "=== Starting batch job at $(date) ==="
+                /opt/spark/bin/spark-submit \
+                  --master local[*] \
+                  --packages org.mongodb.spark:mongo-spark-connector_2.12:10.3.0 \
+                  /app/consumer/write-to-mongodb.py || echo "Batch job failed, retrying in 5 minutes..."
+                echo "Sleeping for 5 minutes before next run..."
+                sleep 300
+              done
+          envFrom:
+            - configMapRef:
+                name: spark-batch-config
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2
+              memory: 4Gi
+      restartPolicy: Always

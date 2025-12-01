@@ -1,0 +1,82 @@
+---
+# YARN ResourceManager Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yarn-resourcemanager
+  namespace: bigdata
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: yarn-resourcemanager
+  template:
+    metadata:
+      labels:
+        app: yarn-resourcemanager
+    spec:
+      containers:
+        - name: yarn-resourcemanager
+          image: apache/hadoop:3
+          command: ["yarn", "resourcemanager"]
+          ports:
+            - containerPort: 8088
+              name: web
+            - containerPort: 8030
+              name: scheduler
+            - containerPort: 8031
+              name: res-tracker
+            - containerPort: 8032
+              name: client
+            - containerPort: 8033
+              name: admin
+          envFrom:
+            - configMapRef:
+                name: hadoop-config
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 2Gi
+---
+# YARN NodeManager Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yarn-nodemanager
+  namespace: bigdata
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: yarn-nodemanager
+  template:
+    metadata:
+      labels:
+        app: yarn-nodemanager
+    spec:
+      containers:
+        - name: yarn-nodemanager
+          image: apache/hadoop:3
+          command: ["yarn", "nodemanager"]
+          ports:
+            - containerPort: 8042
+              name: web
+          envFrom:
+            - configMapRef:
+                name: hadoop-config
+          volumeMounts:
+            - name: hadoop-data
+              mountPath: /tmp/hadoop-yarn
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 2Gi
+      volumes:
+        - name: hadoop-data
+          emptyDir: {}
