@@ -1,21 +1,16 @@
-# Spark Streaming Consumer on Kubernetes
-
-This folder contains the manifests required to run `consumer.py` (Kafka → InfluxDB + optional HDFS) inside Kubernetes on Docker Desktop. The deployment runs a single Spark driver in `local[*]` mode inside the cluster. You can later swap the command to use native Spark-on-Kubernetes if you need executors.
+# Spark Streaming Consumer
 
 ## 1. Build/publish the Spark image
-The existing `spark.Dockerfile` now copies the code into the image, so you only need to build it locally. Because Docker Desktop shares the same daemon with Kubernetes, `IfNotPresent` works.
+Cần build docker image từ spark.Dockerfile nếu chưa build
 
 ```powershell
 # from the repo root
 docker build -t spark-consumer:latest -f spark.Dockerfile .
 ```
 
-> If you run an external Kubernetes cluster, push the image to a registry and update the `image` field inside `consumer-deployment.yaml`.
-
-## 2. Apply namespace & Kafka (if not already)
+## 2. Khởi tạo namespace nếu chưa có
 ```powershell
 kubectl apply -f k8s/namespace.yaml
-# helm install kafka ... (see k8s/kafka/README.md)
 ```
 
 ## 3. Create ConfigMap and Secret
@@ -46,7 +41,7 @@ Expect to see messages like `Connecting to Kafka brokers` followed by batch writ
 | `WEATHER_KAFKA_TOPIC` | `weather-data` | Topic to subscribe |
 | `INFLUXDB_SERVER` | `http://influxdb.bigdata.svc.cluster.local:8086` | Change if InfluxDB runs elsewhere (e.g., `http://host.docker.internal:8086`) |
 | `INFLUXDB_TOKEN` | from Secret | Must match your InfluxDB API token |
-| `HDFS_OUTPUT_PATH` | `hdfs://hdfs-namenode:8020/weather-data` | Optional; Spark will log errors if HDFS is unavailable |
+| `HDFS_OUTPUT_PATH` | `hdfs://hdfs-namenode.bigdata.svc.cluster.local:8020/weather-data` | HDFS path for writing Parquet files |
 
 ## 7. Cleanup
 ```powershell

@@ -1,0 +1,83 @@
+---
+# YARN ResourceManager Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: yarn-resourcemanager
+  namespace: bigdata
+  labels:
+    app: yarn-resourcemanager
+spec:
+  ports:
+    - port: 8088
+      name: web
+      targetPort: 8088
+    - port: 8030
+      name: scheduler
+      targetPort: 8030
+    - port: 8031
+      name: res-tracker
+      targetPort: 8031
+    - port: 8032
+      name: client
+      targetPort: 8032
+    - port: 8033
+      name: admin
+      targetPort: 8033
+  selector:
+    app: yarn-resourcemanager
+---
+# YARN NodeManager Service (headless for worker discovery)
+apiVersion: v1
+kind: Service
+metadata:
+  name: yarn-nodemanager
+  namespace: bigdata
+  labels:
+    app: yarn-nodemanager
+spec:
+  clusterIP: None
+  ports:
+    - port: 8042
+      name: web
+  selector:
+    app: yarn-nodemanager
+---
+# HDFS NameNode Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: hdfs-namenode
+  namespace: bigdata
+  labels:
+    app: hdfs-namenode
+spec:
+  ports:
+    - port: 8020
+      name: rpc
+      targetPort: 8020
+    - port: 9870
+      name: web
+      targetPort: 9870
+  selector:
+    app: hdfs-namenode
+---
+# HDFS DataNode Service (headless)
+apiVersion: v1
+kind: Service
+metadata:
+  name: hdfs-datanode
+  namespace: bigdata
+  labels:
+    app: hdfs-datanode
+spec:
+  clusterIP: None
+  ports:
+    - port: 9864
+      name: web
+    - port: 9866
+      name: data
+    - port: 9867
+      name: ipc
+  selector:
+    app: hdfs-datanode

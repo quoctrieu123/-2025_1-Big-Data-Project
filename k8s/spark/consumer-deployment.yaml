@@ -1,42 +1,43 @@
+#file cấu hình  cho pod spark straming consumer
 apiVersion: apps/v1
-kind: Deployment
+kind: Deployment #loại là deployment
 metadata:
-  name: spark-streaming-consumer
-  namespace: bigdata
+  name: spark-streaming-consumer #tên của pod
+  namespace: bigdata #cụm cluster
   labels:
-    app: spark-streaming-consumer
-spec:
-  replicas: 1
-  selector:
+    app: spark-streaming-consumer #đặt label cho pod
+spec: #cấu hình pod
+  replicas: 1 #số lượng pod
+  selector: #bộ chọn pod dựa trên label
     matchLabels:
-      app: spark-streaming-consumer
+      app: spark-streaming-consumer 
   template:
     metadata:
       labels:
-        app: spark-streaming-consumer
-    spec:
+        app: spark-streaming-consumer #là label ở trên
+    spec: #cấu hình container trong pod
       containers:
-        - name: spark-streaming
-          image: spark-consumer:latest
-          imagePullPolicy: IfNotPresent
-          envFrom:
+        - name: spark-streaming #tên container trong pod
+          image: spark-consumer:latest #sử dụng image  spark-consumer:latest
+          imagePullPolicy: IfNotPresent #chỉ pull image trên mạng nếu chưa có trong máy
+          envFrom: #cấu hình container
             - configMapRef:
-                name: spark-consumer-config
+                name: spark-consumer-config #sử dụng configmap spark-consumer-config
             - secretRef:
-                name: spark-consumer-secrets
-          command: ["/bin/sh","-c"]
-          args:
+                name: spark-consumer-secrets #sử dụng secret spark-consumer-secrets
+          command: ["/bin/sh","-c"] #sử dụng shell bin/sh để chạy command
+          args: #chuỗi command để chạy job consumer.py
             - >-
               /opt/spark/bin/spark-submit
               --master local[*]
               --name kafka-weather-stream
               --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1
               /app/consumer/consumer.py
-          resources:
+          resources: #tài nguyên cấp phát cho container
             requests:
               cpu: "500m"
               memory: "1Gi"
             limits:
               cpu: "1"
               memory: "2Gi"
-      restartPolicy: Always
+      restartPolicy: Always #nếu container bị lỗi thì khởi động lại

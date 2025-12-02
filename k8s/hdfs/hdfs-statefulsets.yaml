@@ -1,0 +1,151 @@
+---
+# HDFS NameNode StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hdfs-namenode
+  namespace: bigdata
+spec:
+  serviceName: hdfs-namenode
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hdfs-namenode
+  template:
+    metadata:
+      labels:
+        app: hdfs-namenode
+    spec:
+      initContainers:
+        - name: format-namenode
+          image: apache/hadoop:3
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -d "/tmp/hadoop-root/dfs/name/current" ]; then
+                echo "Formatting NameNode..."
+                hdfs namenode -format -force
+              else
+                echo "NameNode already formatted"
+              fi
+          env:
+            - name: CLUSTER_NAME
+              value: "hdfs-k8s"
+            - name: ENSURE_NAMENODE_DIR
+              value: "/tmp/hadoop-root/dfs/name"
+          volumeMounts:
+            - name: namenode-data
+              mountPath: /tmp/hadoop-root/dfs/name
+            - name: hadoop-config
+              mountPath: /opt/hadoop/etc/hadoop/core-site.xml
+              subPath: core-site.xml
+            - name: hadoop-config
+              mountPath: /opt/hadoop/etc/hadoop/hdfs-site.xml
+              subPath: hdfs-site.xml
+      containers:
+        - name: hdfs-namenode
+          image: apache/hadoop:3
+          command: ["hdfs", "namenode"]
+          ports:
+            - containerPort: 8020
+              name: rpc
+            - containerPort: 9870
+              name: web
+          env:
+            - name: ENSURE_NAMENODE_DIR
+              value: "/tmp/hadoop-root/dfs/name"
+          volumeMounts:
+            - name: namenode-data
+              mountPath: /tmp/hadoop-root/dfs/name
+            - name: hadoop-config
+              mountPath: /opt/hadoop/etc/hadoop/core-site.xml
+              subPath: core-site.xml
+            - name: hadoop-config
+              mountPath: /opt/hadoop/etc/hadoop/hdfs-site.xml
+              subPath: hdfs-site.xml
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 2Gi
+      volumes:
+        - name: hadoop-config
+          configMap:
+            name: hadoop-config-files
+  volumeClaimTemplates:
+    - metadata:
+        name: namenode-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+---
+# HDFS DataNode StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hdfs-datanode
+  namespace: bigdata
+spec:
+  serviceName: hdfs-datanode
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hdfs-datanode
+  template:
+    metadata:
+      labels:
+        app: hdfs-datanode
+    spec:
+      initContainers:
+        - name: fix-permissions
+          image: apache/hadoop:3
+          command: ["sh", "-c", "chown -R 1000:1000 /tmp/hadoop-root/dfs/data && chmod 700 /tmp/hadoop-root/dfs/data"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: datanode-data
+              mountPath: /tmp/hadoop-root/dfs/data
+      containers:
+        - name: hdfs-datanode
+          image: apache/hadoop:3
+          command: ["hdfs", "datanode"]
+          ports:
+            - containerPort: 9864
+              name: web
+            - containerPort: 9866
+              name: data
+            - containerPort: 9867
+              name: ipc
+          volumeMounts:
+            - name: datanode-data
+              mountPath: /tmp/hadoop-root/dfs/data
+            - name: hadoop-config
+              mountPath: /opt/hadoop/etc/hadoop/core-site.xml
+              subPath: core-site.xml
+            - name: hadoop-config
+              mountPath: /opt/hadoop/etc/hadoop/hdfs-site.xml
+              subPath: hdfs-site.xml
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 2Gi
+      volumes:
+        - name: hadoop-config
+          configMap:
+            name: hadoop-config-files
+  volumeClaimTemplates:
+    - metadata:
+        name: datanode-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi

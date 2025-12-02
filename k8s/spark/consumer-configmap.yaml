@@ -1,15 +1,16 @@
+#file configmap cho ứng dụng Spark Streaming Consumer
 apiVersion: v1
-kind: ConfigMap
+kind: ConfigMap #loại tài nguyên là configmap 
 metadata:
-  name: spark-consumer-config
-  namespace: bigdata
+  name: spark-consumer-config #tên của configmap
+  namespace: bigdata #namesapce của configmap
   labels:
-    app: spark-streaming-consumer
-data:
+    app: spark-streaming-consumer #đặt label cho configmap
+data: #dữ liệu cấu hình trong configmap
   KAFKA_INTERNAL_SERVERS: "kafka-broker-0.kafka-broker-headless.bigdata.svc.cluster.local:9092"
   WEATHER_KAFKA_TOPIC: "weather-data"
   INFLUXDB_SERVER: "http://influxdb.bigdata.svc.cluster.local:8086"
   INFLUXDB_BUCKET: "primary"
   INFLUXDB_ORG: "primary"
   INFLUXDB_MEASUREMENT: "weather-data"
-  HDFS_OUTPUT_PATH: "hdfs://hdfs-namenode:8020/weather-data"
+  HDFS_OUTPUT_PATH: "hdfs://hdfs-namenode.bigdata.svc.cluster.local:8020/weather-data"

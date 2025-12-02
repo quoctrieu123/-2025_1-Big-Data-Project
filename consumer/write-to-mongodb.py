@@ -1,11 +1,14 @@
 import os
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
-from dotenv import load_dotenv
 
-# Load environment
-path = os.path.join(os.path.dirname(__file__), "..", ".env")
-load_dotenv(dotenv_path=path)
+# Load environment from .env (Docker) or env vars (K8s)
+try:
+    from dotenv import load_dotenv
+    path = os.path.join(os.path.dirname(__file__), "..", ".env")
+    load_dotenv(dotenv_path=path)
+except ImportError:
+    pass  # Running in K8s without python-dotenv
 
 HDFS_PATH = os.environ.get("HDFS_OUTPUT_PATH")
 MONGODB_URI = os.environ.get("MONGODB_URI")

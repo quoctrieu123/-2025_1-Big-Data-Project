@@ -17,7 +17,7 @@ RUN apt-get update && \
 # thay vì cố gắng build nó (tránh mọi lỗi về libssl và apt).
 RUN pip install --upgrade pip setuptools wheel
 
-# Bây giờ, cài đặt requirements.txt như bình thường
+# Đưa requirements.txt vào image
 WORKDIR /app
 
 COPY requirements.txt ./requirements.txt

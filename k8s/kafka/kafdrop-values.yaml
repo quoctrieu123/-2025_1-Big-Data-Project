@@ -1,35 +1,31 @@
-# Values for deploying Kafdrop UI on Docker Desktop Kubernetes
-# Chart: https://github.com/obsidiandynamics/kafdrop/tree/master/helm
-# Usage:
-#   helm repo add kafdrop https://obsidiandynamics.github.io/kafdrop
-#   helm upgrade --install kafdrop kafdrop/kafdrop -n bigdata -f k8s/kafka/kafdrop-values.yaml
+#cấu hình để đưa vào chart kafdrop
 
 replicaCount: 1
 
 image:
-  repository: obsidiandynamics/kafdrop
-  tag: 4.0.1
+  repository: obsidiandynamics/kafdrop #iamge kafdrop
+  tag: 4.0.1 #phiên bản image kafdrop
 
 kafka:
-  brokerConnect: "kafka-broker-0.kafka-broker-headless.bigdata.svc.cluster.local:9092"
+  brokerConnect: "kafka-broker-0.kafka-broker-headless.bigdata.svc.cluster.local:9092" #địa chỉ service broker nội bộ trong cluster k8s
 
-jvm:
+jvm: #cấu hình java cho kafdrop
   opts: "-Xms64M -Xmx256M"
 
 server:
-  port: 9000
+  port: 9000 #cổng listner trong kafdrop
   servlet:
     contextPath: /
 
 service:
-  type: NodePort
-  nodePort: 30900
-  port: 9000
+  type: NodePort #nodeport: expose ra bên ngoài cluster
+  nodePort: 30900 #cổng truy cập kafdrop từ máy local
+  port: 9000 #cổng nội bộ trong cluster
 
 resources:
-  requests:
+  requests: #tài nguyên đảm bảo được cấp khi khởi chạy
     cpu: 50m
     memory: 128Mi
-  limits:
+  limits: #tài nguyên tối đa được sử dụng
     cpu: 200m
     memory: 256Mi
