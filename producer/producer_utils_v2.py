@@ -94,7 +94,7 @@ def retrieve_weather_data(producer, kafka_topic, latitude, longitude, city_name)
             send_to_kafka(
                 producer,
                 kafka_topic,
-                message_key,
+                city_name,
                 record 
             )
 

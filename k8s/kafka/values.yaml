@@ -19,7 +19,7 @@ controller:
     size: 2Gi # cấp phát 2gb ổ cứng cho controller
 
 broker:
-  replicaCount: 1 # chỉ chạy 1 pod làm broker
+  replicaCount: 3 # chỉ chạy 3 pod làm broker
   automountServiceAccountToken: true
   persistence:
     enabled: true
@@ -51,6 +51,8 @@ externalAccess: #kích hoạt truy cập bên ngoài => tạo ra service externa
       domain: localhost #sử dụng địa chỉ localhost để truy cập từ máy local
       nodePorts:
         - 30092 #cổng truy cập broker từ máy local
+        - 30093
+        - 30094
 
 listeners: #đặt toàn bộ cấu hình giao tiếp thành Plaintext => đơn giản hóa 
   client: #giao tiếp giữa client và broker

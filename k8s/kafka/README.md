@@ -28,16 +28,29 @@ Port forward kafkabroker ra ngoài vì Minikube/Docker Desktop không hỗ trợ
 ```bash
 # Port-forward the Kafka broker service to localhost
 kubectl -n bigdata port-forward svc/kafka-broker-0-external 30092:9094
+kubectl -n bigdata port-forward svc/kafka-broker-1-external 30093:9094
+kubectl -n bigdata port-forward svc/kafka-broker-2-external 30094:9094
 ```
 
-## 5. Chạy producer
+## 5. Tạo Topic 
+
+```bash
+# xóa topic cũ
+kubectl -n bigdata exec kafka-broker-0 -- kafka-topics.sh --bootstrap-server localhost:9092 --delete --topic weather-data
+
+# Chia parition và replica node 
+kubectl -n bigdata exec kafka-broker-0 -- kafka-topics.sh --bootstrap-server localhost:9092 --create --topic weather-data --replica-assignment 101:102:100,102:100:101,100:101:102
+
+```
+
+## 6. Chạy producer
 ```bash
 pip install -r requirements.txt  
 python producer/producer.py
 ```
 
 
-## 6. Kafdrop Deployment
+## 7. Kafdrop Deployment
 Do kafdrop không có trong bitnami chart => cần clone thủ công
 
 ```bash

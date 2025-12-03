@@ -7,7 +7,7 @@ image:
   tag: 4.0.1 #phiên bản image kafdrop
 
 kafka:
-  brokerConnect: "kafka-broker-0.kafka-broker-headless.bigdata.svc.cluster.local:9092" #địa chỉ service broker nội bộ trong cluster k8s
+  brokerConnect: "kafka-broker-0.kafka-broker-headless.bigdata.svc.cluster.local:9092,kafka-broker-1.kafka-broker-headless.bigdata.svc.cluster.local:9092,kafka-broker-2.kafka-broker-headless.bigdata.svc.cluster.local:9092"
 
 jvm: #cấu hình java cho kafdrop
   opts: "-Xms64M -Xmx256M"

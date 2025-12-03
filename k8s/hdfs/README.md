@@ -123,6 +123,7 @@ kubectl -n bigdata delete pvc datanode-data-hdfs-datanode-0
 | DataNode not connecting | Check logs: `kubectl -n bigdata logs hdfs-datanode-0`. Ensure NameNode is fully started first. |
 | YARN jobs failing | Check ResourceManager logs: `kubectl -n bigdata logs -l app=yarn-resourcemanager` |
 | Permission denied in HDFS | HDFS permissions are disabled in config. Check `dfs.permissions=false` in ConfigMap. |
+| BlockMissingException / Corrupted Blocks | Check report: `kubectl -n bigdata exec hdfs-namenode-0 -- hdfs dfsadmin -report`. If blocks missing, delete corrupted data: `kubectl -n bigdata exec hdfs-namenode-0 -- hdfs dfs -rm -r /path/to/data` |
 
 ## 9. Monitoring
 
