@@ -32,7 +32,7 @@ kubectl -n bigdata get pods -l app=spark-streaming-consumer
 ```powershell
 kubectl -n bigdata logs -f deploy/spark-streaming-consumer
 ```
-Expect to see messages like `Connecting to Kafka brokers` followed by batch write logs for InfluxDB (and optionally HDFS). K8s will restart the pod if the Spark process exits.
+Expect to see messages like `Connecting to Kafka brokers` followed by batch write logs for InfluxDB and optionally HDFS. K8s will restart the pod if the Spark process exits.
 
 ## 6. Configuration knobs
 | Variable | Default | Description |

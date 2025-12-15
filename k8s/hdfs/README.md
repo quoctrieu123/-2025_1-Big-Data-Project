@@ -53,16 +53,16 @@ Open http://localhost:9870 to see HDFS status and DataNode connections.
 
 Test HDFS from command line:
 ```bash
-# Create a test directory
+
 kubectl -n bigdata exec -it hdfs-namenode-0 -- hdfs dfs -mkdir -p /test
 
-# List directories
+
 kubectl -n bigdata exec -it hdfs-namenode-0 -- hdfs dfs -ls /
 
-# Upload a file
+
 kubectl -n bigdata exec -it hdfs-namenode-0 -- hdfs dfs -put /opt/hadoop/README.txt /test/
 
-# Check cluster status
+
 kubectl -n bigdata exec -it hdfs-namenode-0 -- hdfs dfsadmin -report
 ```
 

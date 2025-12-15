@@ -60,3 +60,28 @@ Check database status:
 ```bash
 kubectl -n bigdata exec -it mongodb-0 -- mongosh --eval "db.stats()"
 ```
+
+## 8. Troubleshooting
+
+### API Server Connection Issues
+If you encounter `Unable to connect to the server: net/http: TLS handshake timeout`:
+- **Cause**: `kubectl` cannot reach the Kubernetes API server.
+- **Fix**:
+  1. Check if your cluster (Docker Desktop / Minikube) is running.
+  2. Restart the Kubernetes cluster.
+  3. Check your VPN or Firewall settings.
+
+### Minikube/Cluster Freeze
+If `kubectl` commands hang and do not return, and you see connection errors in your logs:
+- **Cause**: The Minikube VM or Docker container has likely run out of resources (RAM/CPU) or crashed.
+- **Fix**:
+  1. **Restart Minikube**:
+     ```bash
+     minikube stop
+     minikube start
+     ```
+  2. **Increase Resources**: If this happens often, increase the memory assigned to Minikube:
+     ```bash
+     minikube start --memory 8192 --cpus 4
+     ```
+  3. **Check Docker**: Ensure Docker Desktop is still running.
