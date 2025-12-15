@@ -20,6 +20,8 @@ kubectl -n bigdata get pods -l app=grafana
 The Service is exposed via NodePort 31300:
 ```powershell
 kubectl -n bigdata get svc grafana
+port-forward svc/grafana 3000:3000:
+kubectl -n bigdata port-forward svc/grafana 31300:3000
 # then open http://localhost:31300
 ```
 Default admin credentials are stored in `grafana-secrets` (admin/admin123 by default—change before production). The initial datasource should already point to InfluxDB using the token from `influxdb-secrets`.
