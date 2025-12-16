@@ -1,6 +1,7 @@
 # Kafka on Kubernetes (Docker Desktop)
 Bước deploy kafka cluster trên k8s
-
+minikube start --memory 12288 --cpus 4 --driver=docker
+minikube addons enable metrics-server
 ## 1. Yêu cầu
 - Docker Desktop with Kubernetes enabled.
 - Cài helm 3 giúp tải và release chart.
