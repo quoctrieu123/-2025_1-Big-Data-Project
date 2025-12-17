@@ -53,6 +53,7 @@ Open http://localhost:9870 to see HDFS status and DataNode connections.
 
 Test HDFS from command line:
 ```bash
+<<<<<<< HEAD
 
 kubectl -n bigdata exec -it hdfs-namenode-0 -- hdfs dfs -mkdir -p /test
 
@@ -63,6 +64,18 @@ kubectl -n bigdata exec -it hdfs-namenode-0 -- hdfs dfs -ls /
 kubectl -n bigdata exec -it hdfs-namenode-0 -- hdfs dfs -put /opt/hadoop/README.txt /test/
 
 
+=======
+# Create a test directory
+kubectl -n bigdata exec -it hdfs-namenode-0 -- hdfs dfs -mkdir -p /test
+
+# List directories
+kubectl -n bigdata exec -it hdfs-namenode-0 -- hdfs dfs -ls /
+
+# Upload a file
+kubectl -n bigdata exec -it hdfs-namenode-0 -- hdfs dfs -put /opt/hadoop/README.txt /test/
+
+# Check cluster status
+>>>>>>> cff724331f5be670b054eef5a2066b043db60d08
 kubectl -n bigdata exec -it hdfs-namenode-0 -- hdfs dfsadmin -report
 ```
 
@@ -123,7 +136,14 @@ kubectl -n bigdata delete pvc datanode-data-hdfs-datanode-0
 | DataNode not connecting | Check logs: `kubectl -n bigdata logs hdfs-datanode-0`. Ensure NameNode is fully started first. |
 | YARN jobs failing | Check ResourceManager logs: `kubectl -n bigdata logs -l app=yarn-resourcemanager` |
 | Permission denied in HDFS | HDFS permissions are disabled in config. Check `dfs.permissions=false` in ConfigMap. |
+<<<<<<< HEAD
 | BlockMissingException / Corrupted Blocks | Check report: `kubectl -n bigdata exec hdfs-namenode-0 -- hdfs dfsadmin -report`. If blocks missing, delete corrupted data: `kubectl -n bigdata exec hdfs-namenode-0 -- hdfs dfs -rm -r /path/to/data` |
+=======
+<<<<<<< HEAD
+=======
+| BlockMissingException / Corrupted Blocks | Check report: `kubectl -n bigdata exec hdfs-namenode-0 -- hdfs dfsadmin -report`. If blocks missing, delete corrupted data: `kubectl -n bigdata exec hdfs-namenode-0 -- hdfs dfs -rm -r /path/to/data` |
+>>>>>>> 938a1abe9092904e240c8c2e87e54bbe417e8124
+>>>>>>> cff724331f5be670b054eef5a2066b043db60d08
 
 ## 9. Monitoring
 

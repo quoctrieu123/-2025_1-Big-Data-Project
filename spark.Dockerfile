@@ -23,8 +23,16 @@ WORKDIR /app
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+<<<<<<< HEAD
 
 COPY consumer /app/consumer
 COPY batch /app/batch
 
 ENV PYTHONPATH=/app
+=======
+# Copy streaming/batch source code so the image is self-contained for Kubernetes
+#COPY consumer /app/consumer
+#COPY batch /app/batch
+
+#ENV PYTHONPATH=/app
+>>>>>>> cff724331f5be670b054eef5a2066b043db60d08

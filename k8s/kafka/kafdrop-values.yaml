@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #cấu hình để đưa vào chart kafdrop
 
 replicaCount: 1
@@ -29,3 +30,36 @@ resources:
   limits: #tài nguyên tối đa được sử dụng
     cpu: 200m
     memory: 256Mi
+=======
+#cấu hình để đưa vào chart kafdrop
+
+replicaCount: 1
+
+image:
+  repository: obsidiandynamics/kafdrop #iamge kafdrop
+  tag: 4.0.1 #phiên bản image kafdrop
+
+kafka:
+  brokerConnect: "kafka-broker-0.kafka-broker-headless.bigdata.svc.cluster.local:9092" #địa chỉ service broker nội bộ trong cluster k8s
+
+jvm: #cấu hình java cho kafdrop
+  opts: "-Xms64M -Xmx256M"
+
+server:
+  port: 9000 #cổng listner trong kafdrop
+  servlet:
+    contextPath: /
+
+service:
+  type: NodePort #nodeport: expose ra bên ngoài cluster
+  nodePort: 30900 #cổng truy cập kafdrop từ máy local
+  port: 9000 #cổng nội bộ trong cluster
+
+resources:
+  requests: #tài nguyên đảm bảo được cấp khi khởi chạy
+    cpu: 50m
+    memory: 128Mi
+  limits: #tài nguyên tối đa được sử dụng
+    cpu: 200m
+    memory: 256Mi
+>>>>>>> cff724331f5be670b054eef5a2066b043db60d08
