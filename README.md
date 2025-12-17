@@ -34,3 +34,8 @@ Các manifest/values nằm trong thư mục `k8s/`.
 	2. `kubectl apply -f k8s/grafana/configmap-datasource.yaml`.
 	3. `kubectl apply -f k8s/grafana/deployment.yaml` và truy cập http://localhost:31300.
 - `k8s/spark/`: Spark streaming consumer chạy `consumer.py` bên trong K8s.
+
+Việc cần làm tiếp theo:
+- Check lại pvc cho phù hợp (grafana, influxdb,...)
+- Sửa lại resource phù hợp với máy Dũng
+- Truy vấn SQL cho data

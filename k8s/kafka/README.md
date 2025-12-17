@@ -53,4 +53,5 @@ Truy cập localhost qua port forward
 ```bash
 kubectl -n bigdata port-forward svc/kafdrop 30900:9000
 ```
-
+Xóa
+kubectl -n bigdata delete pods -l app.kubernetes.io/instance=kafka
