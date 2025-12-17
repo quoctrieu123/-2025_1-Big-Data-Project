@@ -24,7 +24,11 @@ spec:
             - -c
             - |
               echo "Waiting for HDFS and MongoDB..."
+<<<<<<< HEAD
               sleep 60
+=======
+              sleep 5
+>>>>>>> 938a1abe9092904e240c8c2e87e54bbe417e8124
               echo "Starting batch processing loop..."
               while true; do
                 echo "=== Starting batch job at $(date) ==="
