@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #file lưu trữ các overwrite config để release chart bitnami/kafka vào namesapce
 
 global:
@@ -66,70 +65,3 @@ listeners: #đặt toàn bộ cấu hình giao tiếp thành Plaintext => đơn 
     protocol: PLAINTEXT
   securityProtocolMap: CONTROLLER:PLAINTEXT,CLIENT:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
 
-=======
-#file lưu trữ các overwrite config để release chart bitnami/kafka vào namesapce
-
-global:
-  imageRegistry: public.ecr.aws #chuyển image registry từ docker hub sang public.ecr.aws (do docker giới hạn tag khi dùng free)
-  security:
-    allowInsecureImages: true #cho phép sử dụng image từ registry không an toàn
-
-kraft:
-  enabled: true #kraft mode: không cần sử dụng zookeeper nữa => controller chịu trách nhiệm lưu metatdata luôn
-
-zookeeper:
-  enabled: false #tắt zookeeper đi
-
-controller:
-  replicaCount: 1        # chỉ có 1 controller
-  automountServiceAccountToken: true # tự động gắn token service account để tìm kiếm các node khác trong cluster
-  persistence:
-    enabled: true # dữ liệu controller được lưu trữ vào ổ cứng
-    size: 2Gi # cấp phát 2gb ổ cứng cho controller
-
-broker:
-  replicaCount: 1 # chỉ chạy 1 pod làm broker
-  automountServiceAccountToken: true
-  persistence:
-    enabled: true
-    size: 5Gi # cấp phát 5gb ổ cứng cho broker
-
-defaultInitContainers: # initcontainer: container chạy trước khi kafka khởi động
-  autoDiscovery:
-    enabled: true #tự động phát hiện các pod kafka khác trong cluster để kết thành cụm
-    image:
-      registry: public.ecr.aws
-      repository: bitnami/kubectl
-      tag: 1.33.4-debian-12-r0
-
-rbac: 
-  create: true #pod có quyền truy cập API k8s để tìm các pod kafka khác
-
-externalAccess: #kích hoạt truy cập bên ngoài => tạo ra service external type nodeport
-  enabled: true #kích hoạt truy cập bên ngoài cluster
-  autoDiscovery:
-    enabled: false
-  controller:
-    forceExpose: false  #không expose controller ra bên ngoài
-    service:
-      type: NodePort
-      domain: localhost
-  broker: #expose broker ra bên ngoài
-    service:
-      type: NodePort
-      domain: localhost #sử dụng địa chỉ localhost để truy cập từ máy local
-      nodePorts:
-        - 30092 #cổng truy cập broker từ máy local
-
-listeners: #đặt toàn bộ cấu hình giao tiếp thành Plaintext => đơn giản hóa 
-  client: #giao tiếp giữa client và broker
-    protocol: PLAINTEXT 
-  controller: #giao tiếp giữa controller và broker
-    protocol: PLAINTEXT
-  interbroker: #giao tiếp giữa các broker với nhau
-    protocol: PLAINTEXT
-  external: #giao tiếp giữa client bên ngoài cluster với broker
-    protocol: PLAINTEXT
-  securityProtocolMap: CONTROLLER:PLAINTEXT,CLIENT:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-
->>>>>>> cff724331f5be670b054eef5a2066b043db60d08

@@ -9,11 +9,7 @@ data:
   HDFS-SITE.XML_dfs.namenode.rpc-address: "hdfs-namenode:8020"
   HDFS-SITE.XML_dfs.webhdfs.enabled: "true"
   HDFS-SITE.XML_dfs.permissions: "false"
-<<<<<<< HEAD
   HDFS-SITE.XML_dfs.replication: "2"
-=======
-  HDFS-SITE.XML_dfs.replication: "1"
->>>>>>> cff724331f5be670b054eef5a2066b043db60d08
   MAPRED-SITE.XML_mapreduce.framework.name: "yarn"
   MAPRED-SITE.XML_yarn.app.mapreduce.am.env: "HADOOP_MAPRED_HOME=$HADOOP_HOME"
   MAPRED-SITE.XML_mapreduce.map.env: "HADOOP_MAPRED_HOME=$HADOOP_HOME"
