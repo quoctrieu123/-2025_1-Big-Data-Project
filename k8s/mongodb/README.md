@@ -1,87 +1,41 @@
-# MongoDB on Kubernetes
+Deploy mongo
 
-Deploy MongoDB 7.0 as a StatefulSet with persistent storage for batch processing results.
 
-## 1. Prerequisites
-- Namespace `bigdata` already created (`kubectl apply -f k8s/namespace.yaml`)
-- Default StorageClass available (Docker Desktop / Minikube provides this)
-
-## 2. Deploy MongoDB
+Chạy statefulsetset và check
 ```bash
 kubectl apply -f k8s/mongodb/statefulset.yaml
 kubectl -n bigdata get pods -l app=mongodb
 ```
 
-Wait for the pod to reach `Running` status.
 
-## 3. Access MongoDB
-MongoDB is exposed as a ClusterIP service for internal access:
-- **Internal DNS**: `mongodb.bigdata.svc.cluster.local:27017`
-- **From Spark jobs**: Use connection string `mongodb://mongodb.bigdata.svc.cluster.local:27017`
 
-For external access (debugging):
+Mở qua localhost
 ```bash
 kubectl -n bigdata port-forward svc/mongodb 27017:27017
 ```
 
-Then connect using:
+Kết nối mongo shell
 ```bash
 mongosh mongodb://localhost:27017
 ```
 
-## 4. Configuration
-MongoDB runs without authentication by default (suitable for development). For production:
-1. Add authentication by setting environment variables in the StatefulSet
-2. Create a Secret with credentials
-3. Update Spark batch job to use authenticated connection string
-
-## 5. Persistence
-Data is stored in a 5Gi PVC. To wipe data:
+Xóa data trong pvc mongodb
 ```bash
 kubectl -n bigdata delete statefulset mongodb
 kubectl -n bigdata delete pvc mongodb-data-mongodb-0
 ```
 
-## 6. Integration with Spark
-The Spark batch job (`write-to-mongodb.py`) connects to MongoDB using:
-- URI: `mongodb://mongodb.bigdata.svc.cluster.local:27017`
-- Database: Configured in the batch script
-- Collection: Weather data aggregates
 
-Update the batch job ConfigMap/environment if needed.
 
-## 7. Monitoring
-Check MongoDB logs:
+
+Check MongoDB log
 ```bash
 kubectl -n bigdata logs -f mongodb-0
 ```
 
-Check database status:
+Check database
 ```bash
 kubectl -n bigdata exec -it mongodb-0 -- mongosh --eval "db.stats()"
 ```
 
-## 8. Troubleshooting
 
-### API Server Connection Issues
-If you encounter `Unable to connect to the server: net/http: TLS handshake timeout`:
-- **Cause**: `kubectl` cannot reach the Kubernetes API server.
-- **Fix**:
-  1. Check if your cluster (Docker Desktop / Minikube) is running.
-  2. Restart the Kubernetes cluster.
-  3. Check your VPN or Firewall settings.
-
-### Minikube/Cluster Freeze
-If `kubectl` commands hang and do not return, and you see connection errors in your logs:
-- **Cause**: The Minikube VM or Docker container has likely run out of resources (RAM/CPU) or crashed.
-- **Fix**:
-  1. **Restart Minikube**:
-     ```bash
-     minikube stop
-     minikube start
-     ```
-  2. **Increase Resources**: If this happens often, increase the memory assigned to Minikube:
-     ```bash
-     minikube start --memory 8192 --cpus 4
-     ```
-  3. **Check Docker**: Ensure Docker Desktop is still running.
