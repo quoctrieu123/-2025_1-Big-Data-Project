@@ -35,9 +35,9 @@ spec: #cấu hình pod
               /app/consumer/consumer.py
           resources: #tài nguyên cấp phát cho container
             requests:
-              cpu: "500m"
-              memory: "1Gi"
+              cpu: "200m"
+              memory: "512Mi"
             limits:
-              cpu: "1"
-              memory: "2Gi"
+              cpu: "600m"
+              memory: "1Gi"
       restartPolicy: Always #nếu container bị lỗi thì khởi động lại

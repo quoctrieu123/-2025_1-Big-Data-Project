@@ -6,6 +6,7 @@ Deploy HDFS statefulset và yarn deployment
 Tạo configmap:
 ```bash
 kubectl apply -f k8s/hdfs/configmap.yaml
+kubectl apply -f k8s/hdfs/hadoop-config-files.yaml
 ```
 
 Deploy YARN:

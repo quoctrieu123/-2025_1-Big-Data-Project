@@ -41,11 +41,11 @@ spec:
               mountPath: /data/db
           resources:
             requests:
-              cpu: 250m
-              memory: 512Mi
+              cpu: 100m
+              memory: 256Mi
             limits:
-              cpu: 1
-              memory: 2Gi
+              cpu: 400m
+              memory: 1Gi
   volumeClaimTemplates:
     - metadata:
         name: mongodb-data
@@ -53,4 +53,4 @@ spec:
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            storage: 5Gi
+            storage: 2Gi

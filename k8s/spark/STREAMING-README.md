@@ -22,7 +22,7 @@ kubectl -n bigdata get pods -l app=spark-streaming-consumer
 
 Check logs nếu cần
 ```powershell
-kubectl -n bigdata logs -f deploy/spark-streaming-consumer
+f
 ```
 
 Xóa đi nếu cần

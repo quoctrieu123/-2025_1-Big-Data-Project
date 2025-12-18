@@ -24,8 +24,8 @@ service:
 
 resources:
   requests: #tài nguyên đảm bảo được cấp khi khởi chạy
-    cpu: 50m
-    memory: 128Mi
+    cpu: 20m
+    memory: 64Mi
   limits: #tài nguyên tối đa được sử dụng
-    cpu: 200m
-    memory: 256Mi
+    cpu: 100m
+    memory: 128Mi

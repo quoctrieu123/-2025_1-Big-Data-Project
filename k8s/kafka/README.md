@@ -2,6 +2,16 @@
 # Kafka on Kubernetes (Docker Desktop)
 Bước deploy kafka cluster trên k8s
 minikube start --memory 12288 --cpus 4 --driver=docker
+minikube status
+kubectl -n bigdata delete pods -l app.kubernetes.io/instance=kafka
+kubectl -n bigdata get pods
+kubectl -n bigdata port-forward svc/kafka-broker-0-external 30092:9094
+kubectl -n bigdata port-forward svc/kafka-broker-1-external 30093:9094
+kubectl -n bigdata port-forward svc/kafka-broker-2-external 30094:9094
+python producer/producer.py
+kubectl -n bigdata port-forward svc/kafdrop 30900:9000
+
+
 minikube addons enable metrics-server
 - Chạy `kubectl apply -f k8s/namespace.yaml` để tạo namespace `bigdata`.
 

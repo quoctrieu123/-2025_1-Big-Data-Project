@@ -14,7 +14,7 @@ kubectl -n bigdata get pods -l app=grafana
 Mở cổng ra ngoài
 The Service is exposed via NodePort 31300:
 ```powershell
-kubectl -n bigdata get svc grafana
+kubectl -n bigdata port-forward svc/grafana  31300:3000    
 ```
 
 Xóa PVC của grafana
