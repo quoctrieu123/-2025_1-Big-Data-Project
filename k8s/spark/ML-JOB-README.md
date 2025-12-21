@@ -1,8 +1,15 @@
-Xóa job:
+# Instruction for ML-Job job:
+Delete job (if needed):
+```bash
 kubectl -n bigdata delete job spark-ml-training
+```
 
-Chạy job:
+Run job:
+```bash
 kubectl apply -f k8s/spark/ml-job.yaml
+```
 
-Xem log:
+Check logs (if needed):
+```bash
 kubectl -n bigdata logs job/spark-ml-training | Select-String -Pattern "WARN WindowExec:|WARN InstanceBuilder" -NotMatch
+```
