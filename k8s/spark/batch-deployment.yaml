@@ -30,10 +30,11 @@ spec:
                 echo "=== Starting batch job at $(date) ==="
                 /opt/spark/bin/spark-submit \
                   --master local[*] \
+                  --driver-memory 4g \
                   --packages org.mongodb.spark:mongo-spark-connector_2.12:10.3.0 \
                   /app/consumer/write-to-mongodb.py || echo "Batch job failed, retrying in 5 minutes..."
-                echo "Sleeping for 5 minutes before next run..."
-                sleep 300
+                echo "Sleeping for 3 hours before next run..."
+                sleep 10800
               done
           envFrom:
             - configMapRef:
@@ -41,8 +42,16 @@ spec:
           resources:
             requests:
               cpu: 100m
-              memory: 512Mi
+              memory: 2Gi
             limits:
-              cpu: 500m
-              memory: 1Gi
+              cpu: 1000m
+              memory: 6Gi
+          volumeMounts:
+            - name: script-volume
+              mountPath: /app/consumer/write-to-mongodb.py
+              subPath: write-to-mongodb.py
+      volumes:
+        - name: script-volume
+          configMap:
+            name: spark-batch-script
       restartPolicy: Always

@@ -66,11 +66,11 @@ spec:
               subPath: hdfs-site.xml
           resources:
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: 200m
+              memory: 2Gi
             limits:
-              cpu: 300m
-              memory: 1Gi
+              cpu: 1000m
+              memory: 6Gi
       volumes:
         - name: hadoop-config
           configMap:
@@ -135,8 +135,8 @@ spec:
               cpu: 100m
               memory: 256Mi
             limits:
-              cpu: 500
-              memory: 1Gi
+              cpu: 500m
+              memory: 2Gi
       volumes:
         - name: hadoop-config
           configMap:

@@ -36,6 +36,8 @@ print("Reading data from HDFS parquet...")
 
 try:
     df = spark.read.parquet(HDFS_PATH)
+    df.cache()
+    print(f"Cached DataFrame with {df.count()} rows.")
 except Exception as e:
     print(f"Error when reading from HDFS: {e}")
     exit(1)

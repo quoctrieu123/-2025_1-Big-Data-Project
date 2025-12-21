@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: spark-ml-training
+  namespace: bigdata
+spec:
+  template:
+    spec:
+      containers:
+      - name: spark-ml
+        image: spark-consumer:latest
+        imagePullPolicy: Never
+        command: ["/opt/spark/bin/spark-submit"]
+        args:
+          - "--master"
+          - "local[*]"
+          - "--driver-memory"
+          - "4g"
+          - "/app/consumer/ml_training.py"
+        resources:
+          limits:
+            memory: "6Gi"
+            cpu: "2"
+          requests:
+            memory: "4Gi"
+            cpu: "200m"
+        env:
+        - name: HDFS_OUTPUT_PATH
+          value: "hdfs://hdfs-namenode.bigdata.svc.cluster.local:8020/weather-data"
+      restartPolicy: OnFailure
+  backoffLimit: 4
