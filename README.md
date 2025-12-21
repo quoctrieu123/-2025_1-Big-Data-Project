@@ -10,7 +10,7 @@ Our project implements a comprehensive Big Data pipeline using the **Lambda Arch
 
 The architecture follows a hybrid Lambda pattern incorporating real-time streaming and batch processing.
 
-![Main Pipeline](.\images\main_pipeline.png)
+![Main Pipeline](./images/.main_pipeline.png)
 ---
 
 ## 2. File Explanations
