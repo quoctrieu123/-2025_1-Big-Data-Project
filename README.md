@@ -62,8 +62,8 @@ The explanations for each file in our source code is as followed:
 The project deployment strategy is listed as followed:
 
 - **Phase 1 - Data Acquisition:** Developed Python scripts to ensure stable API connection and data formatting[cite: 633].
-- **Phase 2 - Docker Compose:** Deployed the full stack using `docker-compose.yaml` to verify component connectivity (networking, volumes) in a controlled environment[cite: 634].
-- **Phase 3 - Kubernetes Migration**[cite: 635]:
+- **Phase 2 - Docker Compose:** Deployed the full stack using `docker-compose.yaml` to verify component connectivity (networking, volumes) in a controlled environment.
+- **Phase 3 - Kubernetes Migration**:
   - Converted Docker Compose services to K8s environment.
   - Used **Helm** for managing the complex Kafka installation.
   - Deployed **StatefulSets** for stateful components (HDFS, InfluxDB, Mongo).
